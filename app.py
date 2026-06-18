@@ -1,168 +1,200 @@
 import streamlit as st
 import plotly.graph_objects as go
-import pandas as pd
+
 
 from data_fetch import get_stock_data
 from indicators import add_indicators
 from signals import generate_signal
-from prediction import predict_price
+
 
 
 st.set_page_config(
-    page_title="Stock Analysis Tool",
+    page_title="Mini TradingView",
     layout="wide"
 )
 
 
-st.title("📈 AI Stock Market Analysis Tool")
+st.title("📈 Mini TradingView Stock Analyzer")
 
 
-# -------------------------
-# Stock Dropdown
-# -------------------------
+# ----------------
+# Stock
+# ----------------
 
 stocks = {
-    "Reliance": "RELIANCE.NS",
-    "TCS": "TCS.NS",
-    "Infosys": "INFY.NS",
-    "HDFC Bank": "HDFCBANK.NS",
-    "ICICI Bank": "ICICIBANK.NS",
-    "SBI": "SBIN.NS"
+    "Reliance":"RELIANCE.NS",
+    "TCS":"TCS.NS",
+    "Infosys":"INFY.NS",
+    "HDFC Bank":"HDFCBANK.NS",
+    "SBI":"SBIN.NS"
 }
 
 
-selected = st.selectbox(
+choice = st.selectbox(
     "Select Stock",
     list(stocks.keys())
 )
 
 
-symbol = stocks[selected]
+symbol = stocks[choice]
 
 
-# -------------------------
+
+# ----------------
+# Indicators
+# ----------------
+
+
+selected = st.multiselect(
+
+    "Select Indicators",
+
+    [
+        "SMA 20",
+        "EMA 20",
+        "RSI",
+        "Bollinger Band"
+    ]
+
+)
+
+
+
+# ----------------
 # Data
-# -------------------------
+# ----------------
 
 data = get_stock_data(symbol)
 
-data = add_indicators(data)
+
+# MA for signal
+
+data["MA50"] = (
+    data["Close"]
+    .rolling(50)
+    .mean()
+)
+
+
+data["MA200"] = (
+    data["Close"]
+    .rolling(200)
+    .mean()
+)
+
+
+
+data = add_indicators(
+    data,
+    selected
+)
+
 
 
 signal = generate_signal(data)
 
-prediction = predict_price(data)
 
-
-
-# -------------------------
-# Metrics
-# -------------------------
-
-col1,col2,col3 = st.columns(3)
-
-
-col1.metric(
-    "Current Price",
-    round(data["Close"].iloc[-1],2)
-)
-
-
-col2.metric(
-    "Signal",
-    signal
-)
-
-
-col3.metric(
-    "Prediction",
-    round(prediction,2)
+st.subheader(
+    f"Signal : {signal}"
 )
 
 
 
-# -------------------------
-# Chart
-# -------------------------
+# ----------------
+# Candle Chart
+# ----------------
+
 
 fig = go.Figure()
 
 
 fig.add_trace(
-    go.Scatter(
+
+    go.Candlestick(
+
         x=data.index,
-        y=data["Close"],
+
+        open=data["Open"],
+
+        high=data["High"],
+
+        low=data["Low"],
+
+        close=data["Close"],
+
         name="Price"
+
     )
+
 )
 
 
-fig.add_trace(
-    go.Scatter(
-        x=data.index,
-        y=data["MA50"],
-        name="MA50"
+
+# SMA
+
+if "SMA 20" in selected:
+
+    fig.add_trace(
+        go.Scatter(
+            x=data.index,
+            y=data["SMA20"],
+            name="SMA20"
+        )
     )
+
+
+
+# EMA
+
+if "EMA 20" in selected:
+
+    fig.add_trace(
+        go.Scatter(
+            x=data.index,
+            y=data["EMA20"],
+            name="EMA20"
+        )
+    )
+
+
+
+# Bollinger
+
+if "Bollinger Band" in selected:
+
+
+    fig.add_trace(
+        go.Scatter(
+            x=data.index,
+            y=data["BB_UPPER"],
+            name="BB Upper"
+        )
+    )
+
+
+    fig.add_trace(
+        go.Scatter(
+            x=data.index,
+            y=data["BB_LOWER"],
+            name="BB Lower"
+        )
+    )
+
+
+
+st.plotly_chart(
+    fig,
+    use_container_width=True
 )
 
 
-fig.add_trace(
-    go.Scatter(
-        x=data.index,
-        y=data["MA200"],
-        name="MA200"
-    )
-)
 
-
-st.plotly_chart(fig)
-
-
-
-# -------------------------
 # RSI
-# -------------------------
 
-st.subheader("RSI")
+if "RSI" in selected:
 
-st.line_chart(
-    data["RSI"]
-)
+    st.subheader("RSI")
 
-
-
-# -------------------------
-# Portfolio Tracker
-# -------------------------
-
-st.header("💼 Portfolio Tracker")
-
-
-shares = st.number_input(
-    "Number of Shares",
-    min_value=1,
-    value=10
-)
-
-
-buy_price = st.number_input(
-    "Buy Price",
-    min_value=1.0,
-    value=1000.0
-)
-
-
-current = float(
-    data["Close"].iloc[-1]
-)
-
-
-profit = (
-    current - buy_price
-) * shares
-
-
-st.metric(
-    "Profit / Loss",
-    round(profit,2)
-)
+    st.line_chart(
+        data["RSI"]
+    )
