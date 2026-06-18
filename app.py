@@ -22,11 +22,33 @@ st.title("📈 Mini TradingView Stock Analyzer")
 # ----------------
 
 stocks = {
-    "Reliance":"RELIANCE.NS",
-    "TCS":"TCS.NS",
-    "Infosys":"INFY.NS",
-    "HDFC Bank":"HDFCBANK.NS",
-    "SBI":"SBIN.NS"
+    "Reliance": "RELIANCE.NS",
+    "TCS": "TCS.NS",
+    "Infosys": "INFY.NS",
+    "HDFC Bank": "HDFCBANK.NS",
+    "ICICI Bank": "ICICIBANK.NS",
+    "SBI": "SBIN.NS",
+    "ITC": "ITC.NS",
+    "Adani Enterprises": "ADANIENT.NS",
+    "Adani Ports": "ADANIPORTS.NS",
+    "Larsen & Toubro": "LT.NS",
+    "HUL": "HINDUNILVR.NS",
+    "Maruti": "MARUTI.NS",
+    "Bajaj Finance": "BAJFINANCE.NS",
+    "Axis Bank": "AXISBANK.NS",
+    "Kotak Bank": "KOTAKBANK.NS",
+    "Wipro": "WIPRO.NS",
+    "HCL Tech": "HCLTECH.NS",
+    "Tech Mahindra": "TECHM.NS",
+    "Sun Pharma": "SUNPHARMA.NS",
+    "Tata Motors": "TATAMOTORS.NS",
+    "Tata Steel": "TATASTEEL.NS",
+    "Power Grid": "POWERGRID.NS",
+    "NTPC": "NTPC.NS",
+    "ONGC": "ONGC.NS",
+    "Coal India": "COALINDIA.NS",
+    "Bharti Airtel": "BHARTIARTL.NS"
+
 }
 
 
@@ -54,6 +76,7 @@ selected = st.multiselect(
         "EMA 20",
         "RSI",
         "Bollinger Band"
+        "MACD"
     ]
 
 )
@@ -186,7 +209,73 @@ st.plotly_chart(
     fig,
     use_container_width=True
 )
+# MACD
 
+if "MACD" in selected:
+
+
+    macd_fig = go.Figure()
+
+
+    macd_fig.add_trace(
+        go.Scatter(
+            x=data.index,
+            y=data["MACD"],
+            name="MACD"
+        )
+    )
+
+
+    macd_fig.add_trace(
+        go.Scatter(
+            x=data.index,
+            y=data["MACD_SIGNAL"],
+            name="Signal Line"
+        )
+    )
+
+
+    st.subheader("MACD")
+
+
+    st.plotly_chart(
+        macd_fig,
+        use_container_width=True
+    )
+# ----------------
+# Volume Chart
+# ----------------
+
+st.subheader("Volume")
+
+
+volume_fig = go.Figure()
+
+
+volume_fig.add_trace(
+
+    go.Bar(
+
+        x=data.index,
+
+        y=data["Volume"],
+
+        name="Volume"
+
+    )
+
+)
+
+
+volume_fig.update_layout(
+    height=300
+)
+
+
+st.plotly_chart(
+    volume_fig,
+    use_container_width=True
+)
 
 
 # RSI
